@@ -1,8 +1,9 @@
-import { settingsSeed, projectsSeed } from './seed-data';
+import { projectsSeed } from './seed-data';
+import { contentSeed } from './seed-content';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const settingsUid = 'api::site-settings.site-setting';
+const contentUid = 'api::content.content';
 const projectUid = 'api::project.project';
 
 async function seedLocales(strapi: any) {
@@ -18,16 +19,35 @@ async function seedLocales(strapi: any) {
   }
 }
 
-async function seedSettings(strapi: any) {
-  for (const locale of ['en', 'es'] as const) {
-    const existing = await strapi.documents(settingsUid).findFirst({ locale });
-    if (existing) continue;
-    await strapi.documents(settingsUid).create({
-      data: { ...settingsSeed[locale] },
-      locale,
+async function seedContent(strapi: any) {
+  const enExisting = await strapi.documents(contentUid).findFirst({ locale: 'en' });
+
+  if (!enExisting) {
+    const created = await strapi.documents(contentUid).create({
+      data: { ...contentSeed.en },
+      locale: 'en',
       status: 'published',
     });
-    strapi.log.info(`[seed] settings created (${locale})`);
+    strapi.log.info(`[seed] content created (en)`);
+
+    await strapi.documents(contentUid).create({
+      data: { ...contentSeed.es },
+      documentId: created.documentId,
+      locale: 'es',
+      status: 'published',
+    });
+    strapi.log.info(`[seed] content localized (es)`);
+  } else {
+    const esExisting = await strapi.documents(contentUid).findFirst({ locale: 'es' });
+    if (!esExisting) {
+      await strapi.documents(contentUid).create({
+        data: { ...contentSeed.es },
+        documentId: enExisting.documentId,
+        locale: 'es',
+        status: 'published',
+      });
+      strapi.log.info(`[seed] content localized (es)`);
+    }
   }
 }
 
@@ -122,10 +142,6 @@ async function seedProjects(strapi: any) {
     });
     strapi.log.info(`[seed] project localized: ${project.slug} (es)`);
   }
-
-  const esRows = await strapi.documents(projectUid).findMany({ locale: 'es', status: 'published' });
-  const enRows = await strapi.documents(projectUid).findMany({ locale: 'en', status: 'published' });
-  console.log(`[dbg] en rows: ${enRows.length}, es rows: ${esRows.length}`);
 }
 
 export default {
@@ -135,7 +151,7 @@ export default {
     if (process.env.NODE_ENV !== 'development') return;
     try {
       await seedLocales(strapi);
-      await seedSettings(strapi);
+      await seedContent(strapi);
       await seedProjects(strapi);
     } catch (err) {
       strapi.log.warn(`[seed] skipped: ${(err as Error).message}`);

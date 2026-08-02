@@ -2,8 +2,8 @@ export default {
   routes: [
     {
       method: 'GET',
-      path: '/site-settings',
-      handler: 'site-setting.find',
+      path: '/content',
+      handler: 'content.find',
       config: {
         auth: false,
       },

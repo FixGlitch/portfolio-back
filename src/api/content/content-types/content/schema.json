@@ -1,11 +1,11 @@
 {
   "kind": "singleType",
-  "collectionName": "settings",
+  "collectionName": "contents",
   "info": {
-    "singularName": "site-setting",
-    "pluralName": "site-settings",
-    "displayName": "Site Settings",
-    "description": "Global site settings"
+    "singularName": "content",
+    "pluralName": "contents",
+    "displayName": "Content",
+    "description": "All editorial content: settings, navigation, and page sections"
   },
   "options": {
     "draftAndPublish": true
@@ -16,49 +16,56 @@
     }
   },
   "attributes": {
-    "siteName": {
-      "type": "string",
-      "required": true,
+    "settings": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
         }
       }
     },
-    "siteUrl": {
-      "type": "string",
+    "nav": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
         }
       }
     },
-    "email": {
-      "type": "email",
+    "common": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
         }
       }
     },
-    "github": {
-      "type": "string",
+    "home": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
         }
       }
     },
-    "linkedin": {
-      "type": "string",
+    "about": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
         }
       }
     },
-    "location": {
-      "type": "string",
+    "contact": {
+      "type": "json",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "projects": {
+      "type": "json",
       "pluginOptions": {
         "i18n": {
           "localized": true
