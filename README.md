@@ -1,61 +1,61 @@
-# 🚀 Getting started with Strapi
+# portfolio-back
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+Backend del portfolio de Lucas Blanco. Strapi 5 con contenido en español e inglés, y un endpoint público para el formulario de contacto.
 
-### `develop`
+Frontend asociado: [portfolio-front](../portfolio-front).
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+## Contenido
 
-```
-npm run develop
-# or
-yarn develop
-```
+- **content** (single type): textos del sitio por sección (`nav`, `common`, `home`, `about`, `contact`, `projects`) y ajustes (`settings`). Se sirve en `GET /api/content`.
+- **project** (collection): proyectos con imagen, tags y contenido en bloques.
+- **contact-message** (collection): mensajes del formulario de contacto. Solo se crean desde el endpoint público; se leen en el panel de administración.
 
-### `start`
+Los dos idiomas están configurados como locales (`en`, `es`). El seed crea el contenido inicial y, en cada arranque, agrega solo las claves que falten: lo que se edita en el panel no se sobrescribe.
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+## Endpoint de contacto
 
-```
-npm run start
-# or
-yarn start
+`POST /api/contact-messages` (público, sin autenticación)
+
+```json
+{ "data": { "name": "...", "email": "...", "message": "...", "contact-website": "" } }
 ```
 
-### `build`
+- `contact-website` es un campo trampa (honeypot). Si llega con valor, responde 200 y no guarda nada.
+- Validación: nombre ≤ 120 caracteres, email válido, mensaje ≤ 5000 caracteres. Si falla, responde 400.
+- Límite: 5 mensajes cada 10 minutos por IP. Si se supera, responde 429. El contador vive en memoria y se reinicia al reiniciar el servidor.
+- IP: el front reenvía la IP del visitante en `x-contact-client-ip`, firmada con `CONTACT_PROXY_SECRET`. Sin secreto válido, se usa la IP de la conexión.
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
+## Requisitos
 
+- Node.js 20 o superior.
+
+## Puesta en marcha
+
+```bash
+cp .env.example .env   # completar los secretos
+npm install
+npm run develop        # http://localhost:1337 (admin en /admin)
 ```
-npm run build
-# or
-yarn build
-```
 
-## ⚙️ Deployment
+En desarrollo, SQLite (`.tmp/data.db`). En producción, usar Postgres: descomentar las variables `DATABASE_*` de `.env.example`.
 
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
+## Variables de entorno
 
-```
-yarn strapi deploy
-```
+| Variable | Descripción |
+|---|---|
+| `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, `ENCRYPTION_KEY` | Secretos de Strapi. Deben ser valores propios, no los de ejemplo. |
+| `CONTACT_PROXY_SECRET` | Secreto compartido con el front. Debe tener el mismo valor en ambos servicios. |
+| `DATABASE_CLIENT`, `DATABASE_*` | Conexión a la base de datos. |
 
-## 📚 Learn more
+## Scripts
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
+| Comando | Qué hace |
+|---|---|
+| `npm run develop` | Desarrollo con recarga. Crea el contenido y los proyectos de ejemplo si faltan. |
+| `npm run build` | Compila el panel de administración. |
+| `npm start` | Arranca en producción (requiere `npm run build` antes). |
 
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
+## Notas
 
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+- Los mensajes de contacto no se envían por email: hay que revisarlos en el panel de administración.
+- `src/admin/` contiene la personalización del panel. Los archivos `*.example` son plantillas.
