@@ -1,13 +1,11 @@
-import { projectsSeed } from './seed-data';
 import { flagshipProjectsSeed } from './seed-flagship';
 
-const allProjectsSeed = {
-  en: [...projectsSeed.en, ...flagshipProjectsSeed.en],
-  es: [...projectsSeed.es, ...flagshipProjectsSeed.es],
-};
 import { contentSeed } from './seed-content';
 import fs from 'node:fs';
 import path from 'node:path';
+
+// Only the flagship projects are seeded. The old demo entries in seed-data.ts are left out.
+const allProjectsSeed = flagshipProjectsSeed;
 
 const contentUid = 'api::content.content';
 const projectUid = 'api::project.project';
