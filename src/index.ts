@@ -51,6 +51,32 @@ async function seedContent(strapi: any) {
   }
 }
 
+// Adds keys that exist in the seed but are missing from the stored content.
+// Existing values are never overwritten, so edits made in the admin are kept.
+async function syncContentKeys(strapi: any) {
+  for (const locale of ['en', 'es'] as const) {
+    const seed = contentSeed[locale];
+    const existing = await strapi.documents(contentUid).findFirst({ locale });
+    if (!existing) continue;
+
+    const data: Record<string, Record<string, unknown>> = {};
+    for (const [section, values] of Object.entries(seed)) {
+      if (!values || typeof values !== 'object' || Array.isArray(values)) continue;
+      const current = (existing[section] ?? {}) as Record<string, unknown>;
+      const missing = Object.keys(values).filter((key) => !(key in current));
+      if (missing.length === 0) continue;
+      data[section] = { ...current, ...Object.fromEntries(missing.map((key) => [key, (values as any)[key]])) };
+    }
+
+    const sections = Object.keys(data);
+    if (sections.length === 0) continue;
+
+    await strapi.documents(contentUid).update({ documentId: existing.documentId, locale, data });
+    await strapi.documents(contentUid).publish({ documentId: existing.documentId, locale });
+    strapi.log.info(`[seed] content keys synced (${locale}): ${sections.join(', ')}`);
+  }
+}
+
 async function ensureImage(strapi: any, fileName: string | null): Promise<number | null> {
   if (!fileName) return null;
   const name = path.basename(fileName);
@@ -148,11 +174,15 @@ export default {
   register() {},
 
   async bootstrap({ strapi }: { strapi: any }) {
-    if (process.env.NODE_ENV !== 'development') return;
     try {
+      // Locales, content and key sync are safe in every environment: they only create missing data.
       await seedLocales(strapi);
       await seedContent(strapi);
-      await seedProjects(strapi);
+      await syncContentKeys(strapi);
+      // Sample projects use images from the frontend repo, so they are only seeded in development.
+      if (process.env.NODE_ENV === 'development') {
+        await seedProjects(strapi);
+      }
     } catch (err) {
       strapi.log.warn(`[seed] skipped: ${(err as Error).message}`);
     }
