@@ -1,4 +1,10 @@
 import { projectsSeed } from './seed-data';
+import { flagshipProjectsSeed } from './seed-flagship';
+
+const allProjectsSeed = {
+  en: [...projectsSeed.en, ...flagshipProjectsSeed.en],
+  es: [...projectsSeed.es, ...flagshipProjectsSeed.es],
+};
 import { contentSeed } from './seed-content';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -112,7 +118,7 @@ async function ensureImage(strapi: any, fileName: string | null): Promise<number
 async function seedProjects(strapi: any) {
   const parentIds: Record<string, string> = {};
 
-  for (const project of projectsSeed.en) {
+  for (const project of allProjectsSeed.en) {
     const existing = await strapi.documents(projectUid).findFirst({
       locale: 'en',
       filters: { slug: project.slug },
@@ -142,7 +148,7 @@ async function seedProjects(strapi: any) {
     strapi.log.info(`[seed] project created: ${project.slug} (en)`);
   }
 
-  for (const project of projectsSeed.es) {
+  for (const project of allProjectsSeed.es) {
     const existing = await strapi.documents(projectUid).findFirst({
       locale: 'es',
       filters: { slug: project.slug },
