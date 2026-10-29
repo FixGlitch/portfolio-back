@@ -59,3 +59,7 @@ En desarrollo, SQLite (`.tmp/data.db`). En producción, usar Postgres: descoment
 
 - Los mensajes de contacto no se envían por email: hay que revisarlos en el panel de administración.
 - `src/admin/` contiene la personalización del panel. Los archivos `*.example` son plantillas.
+
+## Documentación
+
+- [Caso de estudio: formulario de contacto con límite real por visitante](docs/caso-de-estudio.md)
